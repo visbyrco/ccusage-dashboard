@@ -1,0 +1,13 @@
+{
+  "name": "ccusage-dash",
+  "version": "0.1.0",
+  "description": "Static browser dashboard for ccusage. No server, no port.",
+  "type": "module",
+  "bin": { "ccusage-dash": "./ccusage-dash" },
+  "scripts": {
+    "dev": "bun src/cli.ts",
+    "build": "bun build --compile src/cli.ts --outfile ccusage-dash",
+    "build:all": "bun scripts/build-all.ts",
+    "test": "bun test"
+  }
+}
