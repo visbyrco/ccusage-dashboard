@@ -38,6 +38,7 @@ if [ "$target" != "source" ] && need curl; then
 fi
 
 need bun || { echo "install bun (https://bun.sh) or rerun when a release exists" >&2; exit 1; }
+echo "using $(command -v bun) ($(bun --version))"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 if need git; then
@@ -47,6 +48,18 @@ else
 fi
 (cd "$tmp/app" && bun install --production >/dev/null 2>&1 || bun install >/dev/null 2>&1; bun build --compile src/cli.ts --outfile "$DEST/$BIN")
 chmod +x "$DEST/$BIN"
-"$DEST/$BIN" --version >/dev/null || { echo "build produced a broken binary, not installing" >&2; rm -f "$DEST/$BIN"; exit 1; }
-echo "installed $DEST/$BIN from source"
+if "$DEST/$BIN" --version >/dev/null 2>&1; then
+  echo "installed $DEST/$BIN from source"
+  echo "run: $BIN"
+  exit 0
+fi
+echo "compile produced a broken binary here, falling back to a bun-run shim" >&2
+rm -f "$DEST/$BIN"
+share="$HOME/.local/share/ccusage-dash"
+rm -rf "$share"
+cp -r "$tmp/app" "$share"
+printf '#!/usr/bin/env bash\nexec bun "%s/src/cli.ts" "$@"\n' "$share" > "$DEST/$BIN"
+chmod +x "$DEST/$BIN"
+"$DEST/$BIN" --version || { echo "shim does not run either, aborting" >&2; exit 1; }
+echo "installed $DEST/$BIN (bun-run shim)"
 echo "run: $BIN"
