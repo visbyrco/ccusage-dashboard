@@ -20,6 +20,29 @@ case "$os-$arch" in
 esac
 
 mkdir -p "$DEST"
+
+# Authenticated download via gh. Needed while the repo is private,
+# plain curl gets a 404 on private release assets.
+if need gh; then
+  tag="$VERSION"
+  if [ "$tag" = "latest" ]; then
+    tag="$(gh release view --repo "$REPO" --json tagName -q .tagName 2>/dev/null || true)"
+  fi
+  if [ -n "$tag" ] && gh release download "$tag" --repo "$REPO" --pattern "$BIN-$target" --dir "$DEST" --clobber >/dev/null 2>&1; then
+    # gh keeps the asset filename, normalize it to $BIN
+    if [ -f "$DEST/$BIN-$target" ]; then
+      mv -f "$DEST/$BIN-$target" "$DEST/$BIN"
+    fi
+    chmod +x "$DEST/$BIN"
+    if "$DEST/$BIN" --version >/dev/null 2>&1; then
+      echo "installed $DEST/$BIN ($tag)"
+      echo "run: $BIN"
+      exit 0
+    fi
+    echo "downloaded binary fails to run, continuing" >&2
+  fi
+fi
+
 url=""
 if [ "$VERSION" = "latest" ]; then
   url="https://github.com/$REPO/releases/latest/download/$BIN-$target"
