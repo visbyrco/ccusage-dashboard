@@ -2,7 +2,7 @@
 # ccusage-dash installer. Downloads a compiled binary when present,
 # otherwise builds from source with bun.
 set -euo pipefail
-REPO="${REPO:-charlie/ccusage-dashboard}"
+REPO="${REPO:-visbyrco/ccusage-dashboard}"
 BIN="${BIN:-ccusage-dash}"
 DEST="${DEST:-$HOME/.local/bin}"
 VERSION="${VERSION:-latest}"

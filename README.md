@@ -19,7 +19,7 @@ This writes `dashboard.html`, `data.js`, and raw JSON into `~/.cache/ccusage-das
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/charlie/ccusage-dashboard/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/visbyrco/ccusage-dashboard/main/install.sh | bash
 ccusage-dash
 ```
 
