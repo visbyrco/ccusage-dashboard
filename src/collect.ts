@@ -86,6 +86,26 @@ function toDayRow(d: any): DayRow {
   };
 }
 
+export function collectSources(
+  known: string[],
+  rows: Array<{ agents?: string[]; byAgent?: Array<{ agent: string }> }>
+): string[] {
+  const out = [...known];
+  const seen = new Set(out);
+  const extra: string[] = [];
+  for (const r of rows) {
+    const names = [...(r.agents ?? []), ...((r.byAgent ?? []).map((a) => a.agent))];
+    for (const n of names) {
+      const s = String(n ?? "").trim();
+      if (s && !seen.has(s)) {
+        seen.add(s);
+        extra.push(s);
+      }
+    }
+  }
+  extra.sort();
+  return [...out, ...extra];
+}
 export function normalizeReport(input: {
   daily: any;
   monthly: any;
@@ -99,18 +119,21 @@ export function normalizeReport(input: {
   const sessionRaw = arr(
     (input.sessions as any)?.sessions ?? (input.sessions as any)?.session ?? input.sessions
   );
+  const daily = dailyRaw.map(toDayRow).filter((d) => d.period);
+  const monthly = monthlyRaw.map(toDayRow).filter((d) => d.period);
+  const sessions: SessionRow[] = sessionRaw.map((s: any) => ({
+    ...toDayRow(s),
+    sessionId: s?.sessionId ? String(s.sessionId) : String(s?.period ?? ""),
+    project: s?.project ? String(s?.project) : s?.metadata?.projectPath ? String(s.metadata.projectPath) : undefined,
+  }));
   return {
     generatedAt: new Date().toISOString(),
     ccusageAvailable: input.ccusageAvailable,
     ccusageError: input.ccusageError,
-    sources: input.sources,
-    daily: dailyRaw.map(toDayRow).filter((d) => d.period),
-    monthly: monthlyRaw.map(toDayRow).filter((d) => d.period),
-    sessions: sessionRaw.map((s: any) => ({
-      ...toDayRow(s),
-      sessionId: s?.sessionId ? String(s.sessionId) : String(s?.period ?? ""),
-      project: s?.project ? String(s?.project) : s?.metadata?.projectPath ? String(s.metadata.projectPath) : undefined,
-    })),
+    sources: collectSources(input.sources, [...daily, ...monthly, ...sessions]),
+    daily,
+    monthly,
+    sessions,
   };
 }
 

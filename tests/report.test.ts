@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { emptyReport, normalizeReport, summarize } from "../src/collect";
+import { collectSources, emptyReport, normalizeReport, summarize } from "../src/collect";
 import { renderHtml } from "../src/html";
 
 const sample = {
@@ -15,6 +15,17 @@ describe("normalize", () => {
     expect(r.daily[0].agents).toEqual(["opencode"]);
     expect(r.daily[0].byAgent[0].agent).toBe("opencode");
     expect(r.sessions[0].sessionId).toBe("abc");
+  });
+  test("discovers sources beyond the cli seed list", () => {
+    const r = normalizeReport({ ...sample, sources: ["claude"], ccusageAvailable: true });
+    expect(r.sources).toContain("claude");
+    expect(r.sources).toContain("opencode");
+    expect(r.sources).toContain("codex");
+    expect(collectSources(["claude"], [{ agents: ["zeta"], byAgent: [{ agent: "alpha" }] }])).toEqual([
+      "claude",
+      "alpha",
+      "zeta",
+    ]);
   });
   test("summarize totals", () => {
     const r = normalizeReport({ ...sample, sources: ["opencode"], ccusageAvailable: true });
