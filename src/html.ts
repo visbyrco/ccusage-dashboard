@@ -8,6 +8,7 @@ export function renderHtml(): string {
 <style>
 :root {
   color-scheme: light dark;
+  --wrap-max: 1120px;
   --bg: #f6f7f9; --bg-soft: #eef0f3;
   --card: #ffffff; --card-2: #fbfbfc;
   --fg: #131316; --fg-2: #3f3f46; --muted: #71717a;
@@ -43,7 +44,7 @@ body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-i
 }
 .topbar { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   background: color-mix(in srgb, var(--bg) 82%, transparent); border-bottom: 1px solid var(--line); }
-.topbar-inner { max-width: 1120px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.topbar-inner { max-width: var(--wrap-max, 1120px); margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .mark { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; flex: none;
   background: linear-gradient(135deg, #4f46e5, #06b6d4); color: #fff; box-shadow: 0 6px 18px -8px rgba(79,70,229,.7); }
@@ -61,7 +62,10 @@ body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-i
 .iconbtn:active { transform: scale(.96); }
 .iconbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .iconbtn svg { width: 17px; height: 17px; }
-.wrap { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: 22px 20px 72px; }
+.wrap { position: relative; z-index: 1; max-width: var(--wrap-max, 1120px); margin: 0 auto; padding: 22px 20px 72px; }
+[data-width="wide"] { --wrap-max: 1440px; }
+[data-width="full"] { --wrap-max: none; }
+[data-width="full"] .wrap { padding-left: 28px; padding-right: 28px; }
 .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 18px 0 16px; }
 .controls .label { font-size: 11.5px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .seg { display: inline-flex; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; box-shadow: var(--shadow); }
@@ -71,9 +75,11 @@ body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-i
 .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); box-shadow: 0 2px 8px rgba(0,0,0,.18); }
 .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .range-note { margin-left: auto; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 6px 0 4px; }
-@media (max-width: 900px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 520px) { .cards { grid-template-columns: 1fr; } }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin: 6px 0 4px; }
+[data-cards="4"] .cards { grid-template-columns: repeat(4, 1fr); }
+[data-cards="2"] .cards { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 900px) { [data-cards="4"] .cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .cards, [data-cards="4"] .cards, [data-cards="2"] .cards { grid-template-columns: 1fr; } }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 15px 13px;
   box-shadow: var(--shadow); position: relative; overflow: hidden; transition: transform .16s ease, border-color .16s ease;
   animation: rise .45s ease both; }
@@ -93,7 +99,25 @@ body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-i
 .card .v { font-family: var(--mono); font-size: 27px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
 .card .s { font-size: 12.5px; color: var(--muted); margin-top: 7px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .grid2 { display: grid; grid-template-columns: 1.35fr .9fr; gap: 12px; margin-top: 12px; }
-@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+[data-charts="stacked"] .grid2 { grid-template-columns: 1fr; }
+[data-charts="columns"] .grid2 { grid-template-columns: 1fr 1fr; }
+@media (max-width: 900px) { .grid2, [data-charts="columns"] .grid2 { grid-template-columns: 1fr; } }
+[data-density="compact"] .grid2 { gap: 8px; margin-top: 8px; }
+[data-density="compact"] .cards { gap: 8px; }
+[data-density="compact"] .card { padding: 10px 12px 9px; }
+[data-density="compact"] .card .v { font-size: 22px; }
+[data-density="compact"] .chart { height: 160px; }
+[hidden] { display: none !important; }
+.menuwrap { position: relative; }
+.menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: 264px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px; }
+.menu h3 { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 10px 2px 6px; }
+.menu h3:first-child { margin-top: 0; }
+.menu .row { display: flex; gap: 6px; flex-wrap: wrap; }
+.menu .row button { font: inherit; font-size: 12.5px; font-weight: 600; border: 1px solid var(--line); background: var(--bg-soft);
+  color: var(--fg-2); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+.menu .row button[aria-pressed="true"] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.menu .row button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; animation: rise .5s ease both; }
 .panel-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 14px 16px 4px; }
 .panel-head h2 { font-size: 14px; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
@@ -153,6 +177,43 @@ p.foot { color: var(--muted); font-size: 12.5px; margin: 18px 2px 0; }
   </div>
   <div class="top-actions">
     <span class="live" id="live"><i></i><span id="live-text">snapshot</span></span>
+    <div class="menuwrap">
+      <button class="iconbtn" id="layout-btn" type="button" aria-label="Layout options" title="Layout options" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2.2"/></svg>
+      </button>
+      <div class="menu" id="layout-menu" hidden>
+        <h3>Width</h3>
+        <div class="row" id="opt-width">
+          <button type="button" data-val="comfort">Comfort</button>
+          <button type="button" data-val="wide">Wide</button>
+          <button type="button" data-val="full">Full</button>
+        </div>
+        <h3>Cards per row</h3>
+        <div class="row" id="opt-cards">
+          <button type="button" data-val="auto">Auto</button>
+          <button type="button" data-val="4">4</button>
+          <button type="button" data-val="2">2</button>
+        </div>
+        <h3>Charts</h3>
+        <div class="row" id="opt-charts">
+          <button type="button" data-val="side">Side by side</button>
+          <button type="button" data-val="stacked">Stacked</button>
+          <button type="button" data-val="columns">Equal</button>
+        </div>
+        <h3>Density</h3>
+        <div class="row" id="opt-density">
+          <button type="button" data-val="comfort">Comfort</button>
+          <button type="button" data-val="compact">Compact</button>
+        </div>
+        <h3>Sections</h3>
+        <div class="row" id="opt-sections">
+          <button type="button" data-val="charts">Charts</button>
+          <button type="button" data-val="daily">Daily</button>
+          <button type="button" data-val="monthly">Monthly</button>
+          <button type="button" data-val="sessions">Sessions</button>
+        </div>
+      </div>
+    </div>
     <button class="iconbtn" id="theme" type="button" aria-label="Toggle theme" title="Toggle theme">
       <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -163,33 +224,47 @@ p.foot { color: var(--muted); font-size: 12.5px; margin: 18px 2px 0; }
   <div class="controls">
     <span class="label">Source</span>
     <div class="seg" id="sources" role="group" aria-label="sources"></div>
+    <span class="label">Days</span>
+    <div class="seg" id="ranges" role="group" aria-label="day range">
+      <button type="button" data-val="7">7D</button>
+      <button type="button" data-val="30">30D</button>
+      <button type="button" data-val="90">90D</button>
+      <button type="button" data-val="all">All</button>
+    </div>
+    <span class="label">Months</span>
+    <div class="seg" id="mranges" role="group" aria-label="month range">
+      <button type="button" data-val="3">3M</button>
+      <button type="button" data-val="6">6M</button>
+      <button type="button" data-val="12">12M</button>
+      <button type="button" data-val="all">All</button>
+    </div>
     <span class="range-note" id="range-note"></span>
   </div>
   <div class="cards" id="cards"></div>
   <div id="empty"></div>
-  <div class="grid2">
+  <div class="grid2" id="sec-charts">
     <div class="panel">
-      <div class="panel-head"><h2>Daily tokens</h2><span class="hint">last 30 days</span><span class="total" id="tot-daily"></span></div>
+      <div class="panel-head"><h2>Daily tokens</h2><span class="hint" id="hint-daily">last 30 days</span><span class="total" id="tot-daily"></span></div>
       <div class="legend"><span><span class="dot" style="background:#6366f1"></span>total tokens</span><span><span class="dot" style="background:var(--muted)"></span>hover a bar for exact values</span></div>
       <div class="chart" id="chart-daily" role="img" aria-label="Daily tokens chart"></div>
       <div class="xlabels" id="x-daily"></div>
     </div>
     <div class="panel">
-      <div class="panel-head"><h2>Monthly cost</h2><span class="hint">last 12 months</span><span class="total" id="tot-monthly"></span></div>
+      <div class="panel-head"><h2>Monthly cost</h2><span class="hint" id="hint-monthly">last 12 months</span><span class="total" id="tot-monthly"></span></div>
       <div class="legend"><span><span class="dot" style="background:#06b6d4"></span>cost in USD</span></div>
       <div class="chart" id="chart-monthly" role="img" aria-label="Monthly cost chart"></div>
       <div class="xlabels" id="x-monthly"></div>
     </div>
   </div>
-  <section class="block panel">
+  <section class="block panel" id="sec-daily">
     <div class="panel-head"><h2>Daily history</h2><span class="count" id="c-daily"></span></div>
     <div class="tbl-wrap"><table id="tbl-daily"></table></div>
   </section>
-  <section class="block panel">
+  <section class="block panel" id="sec-monthly">
     <div class="panel-head"><h2>Monthly history</h2><span class="count" id="c-monthly"></span></div>
     <div class="tbl-wrap"><table id="tbl-monthly"></table></div>
   </section>
-  <section class="block panel">
+  <section class="block panel" id="sec-sessions">
     <div class="panel-head"><h2>Recent sessions</h2><span class="count" id="c-sessions"></span></div>
     <div class="tbl-wrap"><table id="tbl-sessions"></table></div>
   </section>
@@ -216,6 +291,65 @@ p.foot { color: var(--muted); font-size: 12.5px; margin: 18px 2px 0; }
     apply(cur);
     try { localStorage.setItem("ccusage-theme", cur); } catch (e) {}
   };
+  var layout = { width: "comfort", cards: "auto", charts: "side", density: "comfort", show: { charts: true, daily: true, monthly: true, sessions: true } };
+  try {
+    var raw = localStorage.getItem("ccusage-layout");
+    if (raw) { var p = JSON.parse(raw); for (var k in p) layout[k] = p[k]; }
+  } catch (e) {}
+  function saveLayout() { try { localStorage.setItem("ccusage-layout", JSON.stringify(layout)); } catch (e) {} }
+  function syncMenu() {
+    function sync(id, val) {
+      var btns = document.querySelectorAll("#" + id + " button");
+      btns.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-val") === val ? "true" : "false"); });
+    }
+    sync("opt-width", layout.width); sync("opt-cards", layout.cards);
+    sync("opt-charts", layout.charts); sync("opt-density", layout.density);
+    var sb = document.querySelectorAll("#opt-sections button");
+    sb.forEach(function (b) {
+      var v = b.getAttribute("data-val");
+      b.setAttribute("aria-pressed", layout.show[v] ? "true" : "false");
+    });
+  }
+  function applyLayout() {
+    root.setAttribute("data-width", layout.width);
+    root.setAttribute("data-cards", layout.cards);
+    root.setAttribute("data-charts", layout.charts);
+    root.setAttribute("data-density", layout.density);
+    var map = { charts: "sec-charts", daily: "sec-daily", monthly: "sec-monthly", sessions: "sec-sessions" };
+    for (var key in map) {
+      var el = document.getElementById(map[key]);
+      if (el) { if (layout.show[key]) el.removeAttribute("hidden"); else el.setAttribute("hidden", ""); }
+    }
+    syncMenu(); saveLayout();
+  }
+  function bindOpt(id, fn) {
+    var btns = document.querySelectorAll("#" + id + " button");
+    btns.forEach(function (b) {
+      b.onclick = function () { fn(b.getAttribute("data-val")); applyLayout(); };
+    });
+  }
+  bindOpt("opt-width", function (v) { layout.width = v; });
+  bindOpt("opt-cards", function (v) { layout.cards = v; });
+  bindOpt("opt-charts", function (v) { layout.charts = v; });
+  bindOpt("opt-density", function (v) { layout.density = v; });
+  bindOpt("opt-sections", function (v) { layout.show[v] = !layout.show[v]; });
+  applyLayout();
+  var menu = document.getElementById("layout-menu");
+  var lbtn = document.getElementById("layout-btn");
+  lbtn.onclick = function (e) {
+    e.stopPropagation();
+    var open = menu.hasAttribute("hidden");
+    if (open) { menu.removeAttribute("hidden"); lbtn.setAttribute("aria-expanded", "true"); }
+    else { menu.setAttribute("hidden", ""); lbtn.setAttribute("aria-expanded", "false"); }
+  };
+  document.addEventListener("click", function (e) {
+    if (!menu.hasAttribute("hidden") && !menu.contains(e.target) && e.target !== lbtn && !lbtn.contains(e.target)) {
+      menu.setAttribute("hidden", ""); lbtn.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !menu.hasAttribute("hidden")) { menu.setAttribute("hidden", ""); lbtn.setAttribute("aria-expanded", "false"); lbtn.focus(); }
+  });
   var D = window.__CCUSAGE__ || null;
   var meta = document.getElementById("meta");
   if (!D) { meta.textContent = "no data found next to this file"; return; }
@@ -223,14 +357,54 @@ p.foot { color: var(--muted); font-size: 12.5px; margin: 18px 2px 0; }
   meta.textContent = "snapshot " + gen + (D.ccusageAvailable ? "" : " - ccusage missing");
   try { document.getElementById("live-text").textContent = gen || "snapshot"; } catch (e) {}
   var active = "all";
+  var dayRange = "30";
+  var monthRange = "12";
+  try {
+    var fraw = localStorage.getItem("ccusage-filters");
+    if (fraw) { var fp = JSON.parse(fraw); if (fp.dayRange) dayRange = fp.dayRange; if (fp.monthRange) monthRange = fp.monthRange; }
+  } catch (e) {}
+  function saveFilters() { try { localStorage.setItem("ccusage-filters", JSON.stringify({ dayRange: dayRange, monthRange: monthRange })); } catch (e) {} }
+  function discoverSources() {
+    var seen = {};
+    var out = [];
+    function add(s) { s = String(s || "").trim(); if (s && !seen[s]) { seen[s] = 1; out.push(s); } }
+    (D.sources || []).forEach(add);
+    ["daily", "monthly", "sessions"].forEach(function (k) {
+      (D[k] || []).forEach(function (r) {
+        (r.agents || []).forEach(add);
+        (r.byAgent || []).forEach(function (a) { add(a.agent); });
+      });
+    });
+    return ["all"].concat(out);
+  }
   var srcWrap = document.getElementById("sources");
-  var srcs = ["all"].concat(D.sources || []);
-  srcs.forEach(function (s) {
+  discoverSources().forEach(function (s) {
     var b = document.createElement("button");
     b.type = "button"; b.textContent = s; b.setAttribute("aria-pressed", s === active ? "true" : "false");
     b.onclick = function () { active = s; paint(); };
     srcWrap.appendChild(b);
   });
+  function syncRanges() {
+    document.querySelectorAll("#ranges button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-val") === dayRange ? "true" : "false");
+    });
+    document.querySelectorAll("#mranges button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-val") === monthRange ? "true" : "false");
+    });
+  }
+  document.querySelectorAll("#ranges button").forEach(function (b) {
+    b.onclick = function () { dayRange = b.getAttribute("data-val"); saveFilters(); paint(); };
+  });
+  document.querySelectorAll("#mranges button").forEach(function (b) {
+    b.onclick = function () { monthRange = b.getAttribute("data-val"); saveFilters(); paint(); };
+  });
+  function applyRange(rows, range) {
+    if (range === "all") return rows;
+    var n = parseInt(range, 10);
+    if (!isFinite(n) || n <= 0) return rows;
+    return rows.slice(-n);
+  }
+  syncRanges();
   function money(n) { return "$" + Number(n || 0).toFixed(2); }
   function num(n) { return Number(n || 0).toLocaleString("en-US"); }
   function compact(n) {
@@ -261,8 +435,11 @@ p.foot { color: var(--muted); font-size: 12.5px; margin: 18px 2px 0; }
   function paint() {
     var chips = srcWrap.querySelectorAll("button");
     chips.forEach(function (c) { c.setAttribute("aria-pressed", c.textContent === active ? "true" : "false"); });
-    var daily = (D.daily || []).filter(inSource).map(sliceFor).filter(Boolean);
-    var monthly = (D.monthly || []).filter(inSource).map(sliceFor).filter(Boolean);
+    syncRanges();
+    var fDaily = (D.daily || []).filter(inSource).map(sliceFor).filter(Boolean);
+    var fMonthly = (D.monthly || []).filter(inSource).map(sliceFor).filter(Boolean);
+    var daily = applyRange(fDaily, dayRange);
+    var monthly = applyRange(fMonthly, monthRange);
     var today = daily[daily.length - 1];
     var month = monthly[monthly.length - 1];
     var totCost = daily.reduce(function (n, d) { return n + (d.totalCost || 0); }, 0);
@@ -287,19 +464,24 @@ p.foot { color: var(--muted); font-size: 12.5px; margin: 18px 2px 0; }
     if (!D.ccusageAvailable) {
       empty.innerHTML = '<div class="notice">ccusage data is missing. Install it with <code>npm i -g ccusage</code> or <code>bun add -g ccusage</code>, run an agent once, then rerun <code>ccusage-dash</code>. ' + (D.ccusageError ? "Detail: " + D.ccusageError : "") + '</div>';
     } else if (!daily.length) {
-      empty.innerHTML = '<div class="notice">No usage rows for this filter. Try <code>all</code>, or check that Claude, Codex, or OpenCode have written local session files.</div>';
+      empty.innerHTML = '<div class="notice">No usage rows for this filter. Try <code>all</code> or a wider day range, or check that your agents have written local session files.</div>';
     } else empty.innerHTML = "";
     var rn = document.getElementById("range-note");
-    if (daily.length) rn.textContent = daily[0].period + " to " + daily[daily.length - 1].period + " - " + daily.length + " days";
+    if (daily.length) {
+      var span = daily[0].period + " to " + daily[daily.length - 1].period + " - " + daily.length + " days";
+      rn.textContent = fDaily.length > daily.length ? span + " (" + fDaily.length + " total)" : span;
+    }
     else rn.textContent = "";
+    document.getElementById("hint-daily").textContent = dayRange === "all" ? "all " + fDaily.length + " days" : "last " + daily.length + " days";
+    document.getElementById("hint-monthly").textContent = monthRange === "all" ? "all " + fMonthly.length + " months" : "last " + monthly.length + " months";
     document.getElementById("tot-daily").textContent = compact(totTok) + " tok";
     document.getElementById("tot-monthly").textContent = money(monthly.reduce(function (n, d) { return n + (d.totalCost || 0); }, 0));
-    bars(document.getElementById("chart-daily"), document.getElementById("x-daily"), daily.slice(-30), "totalTokens", false);
-    bars(document.getElementById("chart-monthly"), document.getElementById("x-monthly"), monthly.slice(-12), "totalCost", true);
-    document.getElementById("c-daily").textContent = daily.length + " rows";
-    document.getElementById("c-monthly").textContent = monthly.length + " rows";
+    bars(document.getElementById("chart-daily"), document.getElementById("x-daily"), daily, "totalTokens", false);
+    bars(document.getElementById("chart-monthly"), document.getElementById("x-monthly"), monthly, "totalCost", true);
+    document.getElementById("c-daily").textContent = fDaily.length > daily.length ? daily.length + " of " + fDaily.length + " rows" : daily.length + " rows";
+    document.getElementById("c-monthly").textContent = fMonthly.length > monthly.length ? monthly.length + " of " + fMonthly.length + " rows" : monthly.length + " rows";
     document.getElementById("c-sessions").textContent = (D.sessions || []).length + " in range";
-    table(document.getElementById("tbl-daily"), daily.slice().reverse().slice(0, 60), true);
+    table(document.getElementById("tbl-daily"), daily.slice().reverse().slice(0, 90), true);
     table(document.getElementById("tbl-monthly"), monthly.slice().reverse().slice(0, 24), true);
     stable(document.getElementById("tbl-sessions"), (D.sessions || []).slice(0, 20));
   }
