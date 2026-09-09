@@ -1,11 +1,50 @@
 #!/usr/bin/env bash
 # ccusage-dash installer. Downloads a compiled binary when present,
 # otherwise builds from source with bun.
+#
+# Channels:
+#   main (default) - stable releases built from the main branch.
+#   nightly        - dev builds from the nightly branch.
+#
+# Usage:
+#   install.sh [--channel main|nightly] [--version TAG] [--nightly]
+#   CHANNEL=nightly install.sh
+#   CHANNEL=nightly VERSION=nightly-2026.01.02 install.sh
 set -euo pipefail
 REPO="${REPO:-visbyrco/ccusage-dashboard}"
 BIN="${BIN:-ccusage-dash}"
 DEST="${DEST:-$HOME/.local/bin}"
-VERSION="${VERSION:-latest}"
+CHANNEL="${CHANNEL:-main}"
+VERSION="${VERSION:-}"
+
+usage() {
+  echo "usage: install.sh [--channel main|nightly] [--version TAG] [--nightly] [--stable]" >&2
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --channel) CHANNEL="${2:-}"; shift 2 ;;
+    --channel=*) CHANNEL="${1#--channel=}"; shift ;;
+    --nightly) CHANNEL="nightly"; shift ;;
+    --stable|--main) CHANNEL="main"; shift ;;
+    --version) VERSION="${2:-}"; shift 2 ;;
+    --version=*) VERSION="${1#--version=}"; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "unknown flag $1" >&2; usage; exit 1 ;;
+  esac
+done
+
+case "$CHANNEL" in
+  main|stable) CHANNEL="main" ;;
+  nightly|night|dev) CHANNEL="nightly" ;;
+  *) echo "unknown channel $CHANNEL (want main or nightly)" >&2; exit 1 ;;
+esac
+
+# Default tag per channel: stable resolves to the latest stable release,
+# nightly follows the moving nightly prerelease.
+if [ -z "$VERSION" ]; then
+  if [ "$CHANNEL" = "nightly" ]; then VERSION="nightly"; else VERSION="latest"; fi
+fi
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing $1" >&2; return 1; }; }
 
@@ -65,7 +104,11 @@ echo "using $(command -v bun) ($(bun --version))"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 if need git; then
-  git clone --depth 1 "https://github.com/$REPO" "$tmp/app"
+  if [ "$CHANNEL" = "nightly" ]; then
+    git clone --depth 1 --branch nightly "https://github.com/$REPO" "$tmp/app"
+  else
+    git clone --depth 1 --branch main "https://github.com/$REPO" "$tmp/app"
+  fi
 else
   echo "git is required for source install" >&2; exit 1
 fi
