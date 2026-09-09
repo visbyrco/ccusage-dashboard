@@ -47,5 +47,6 @@ else
 fi
 (cd "$tmp/app" && bun install --production >/dev/null 2>&1 || bun install >/dev/null 2>&1; bun build --compile src/cli.ts --outfile "$DEST/$BIN")
 chmod +x "$DEST/$BIN"
+"$DEST/$BIN" --version >/dev/null || { echo "build produced a broken binary, not installing" >&2; rm -f "$DEST/$BIN"; exit 1; }
 echo "installed $DEST/$BIN from source"
 echo "run: $BIN"
