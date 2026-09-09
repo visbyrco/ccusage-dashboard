@@ -1,0 +1,67 @@
+name: release
+
+on:
+  push:
+    branches: [main, nightly]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun scripts/build-all.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/ccusage-dash-*
+
+  release-stable:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist
+      - id: version
+        run: echo "value=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.value }}
+          name: v${{ steps.version.outputs.value }}
+          generate_release_notes: true
+          make_latest: true
+          files: dist/ccusage-dash-*
+
+  release-nightly:
+    if: github.ref == 'refs/heads/nightly'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: nightly (${{ github.sha }})
+          prerelease: true
+          make_latest: false
+          body: |
+            Nightly build from `nightly` branch.
+
+            Commit: ${{ github.sha }}
+            Date: ${{ github.event.head_commit.timestamp }}
+          files: dist/ccusage-dash-*
